@@ -131,7 +131,9 @@ class MainActivity : ComponentActivity() {
 
     override fun onPause() {
         super.onPause()
-        if (isInPipMode.value == false ) player.pause()
+        if (isInPipMode.value == false) {
+            player.pause()
+        }
     }
 
     override fun onDestroy() {
