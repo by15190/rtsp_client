@@ -51,12 +51,25 @@ import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.session.MediaSession
 import androidx.media3.ui.PlayerView
 import com.example.rtsp_client.ui.theme.Rtsp_clientTheme
+import org.videolan.libvlc.LibVLC
+import org.videolan.libvlc.Media
+import org.videolan.libvlc.MediaPlayer
+import java.io.File
 
 class MainActivity : ComponentActivity() {
+    private lateinit var libVLC: LibVLC
+    private lateinit var url: String
+    private lateinit var mediaPlayer: MediaPlayer
     private lateinit var player: ExoPlayer
     private val isInPipMode = mutableStateOf(false)
+    private lateinit var recordingPath: String
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        // initialize libvlc and media player
+        libVLC = LibVLC(this)
+        mediaPlayer = MediaPlayer(libVLC)
+
         super.onCreate(savedInstanceState)
         player = ExoPlayer.Builder(this).build()
         enableEdgeToEdge()
@@ -70,14 +83,14 @@ class MainActivity : ComponentActivity() {
             var urlstate by rememberSaveable { mutableStateOf("") }
             var recordingState by rememberSaveable { mutableStateOf(false) }
 
+
             Rtsp_clientTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
                     Column(
                         modifier = Modifier
                             .fillMaxSize()
                             .clickable { focusManager.clearFocus() }
-                            .padding(innerPadding)
-                    ) {
+                            .padding(innerPadding)) {
                         if (!isInPipMode.value) {
                             searchBar(
                                 modifier = Modifier,
@@ -97,15 +110,12 @@ class MainActivity : ComponentActivity() {
 
                                 },
                                 context = context
-                            )
+                            ).run { url = urlstate }
                             Spacer(Modifier.height(30.dp))
                         }
 
                         videoView(
-                            modifier = Modifier,
-                            url = urlstate,
-                            player = player,
-                            context = context
+                            modifier = Modifier, url = urlstate, player = player, context = context
                         )
 
                         if (!isInPipMode.value) {
@@ -113,14 +123,44 @@ class MainActivity : ComponentActivity() {
                             Buttons(
                                 modifier = Modifier.padding(horizontal = 10.dp),
                                 isRecording = recordingState,
-                                onclickRecord = { recordingState = it },
-                                onPIPclicked = { enterPipMode() }
-                            )
+                                onclickRecord = {
+                                    if (recordingState) {
+                                        stoprecording()
+                                    } else {
+                                        startrecording(url)
+                                    }
+                                    recordingState = !recordingState
+
+                                },
+                                onPIPclicked = { enterPipMode() })
                         }
                     }
                 }
             }
         }
+    }
+
+    private fun stoprecording() {
+        mediaPlayer.release()
+
+    }
+
+    private fun startrecording(url: String) {
+        // Ensure the directory exists
+        recordingPath =
+            "/storage/emulated/0/Movies/Rtsp/recording_${System.currentTimeMillis()}.mp4" //  path for the recording
+
+        val file = File(recordingPath)
+        file.parentFile?.mkdirs() // Create the directory if it doesn't exist
+
+        // Set up recording with the RTSP URL
+        val media = Media(libVLC, url) // Use the RTSP URL for recording
+        // Play + Record
+        media.addOption(":sout=#file{dst=$recordingPath}")
+        media.addOption(":sout-keep")
+
+        mediaPlayer.media = media
+        mediaPlayer.play()
     }
 
 
@@ -139,17 +179,20 @@ class MainActivity : ComponentActivity() {
     override fun onDestroy() {
         super.onDestroy()
         player.release()
+        if (mediaPlayer.isPlaying) mediaPlayer.stop()
+        mediaPlayer.release()
+        libVLC.release()
     }
 
     private fun enterPipMode() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val aspectRatio = Rational(16, 9)
-            val pipParams = PictureInPictureParams.Builder()
-                .setAspectRatio(aspectRatio)
-                .build()
+            val pipParams = PictureInPictureParams.Builder().setAspectRatio(aspectRatio).build()
             enterPictureInPictureMode(pipParams)
         }
     }
+
+
 }
 
 @Composable
@@ -253,8 +296,7 @@ fun videoView(
                 it.player = player
 
             }
-        },
-        modifier = Modifier
+        }, modifier = Modifier
             .fillMaxWidth()
             .aspectRatio(16 / 9f)
 

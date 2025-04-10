@@ -69,4 +69,10 @@ dependencies {
     implementation("androidx.media3:media3-session:$media3Version")
 // for the rtsp support
     implementation("androidx.media3:media3-exoplayer-rtsp:$media3Version")
+
+    ///  for recording and saving the stream
+    implementation ("org.videolan.android:libvlc-all:3.5.1")
+
+
+
 }
