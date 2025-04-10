@@ -1,22 +1,21 @@
 package com.example.rtsp_client
 
-import android.R.attr.contentDescription
+import android.app.PictureInPictureParams
 import android.content.Context
+import android.os.Build
 import android.os.Bundle
+import android.util.Rational
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.foundation.background
+import androidx.annotation.OptIn
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.InteractionSource
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -30,101 +29,124 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Snackbar
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.scale
-import androidx.compose.ui.focus.focusModifier
-import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MimeTypes
+import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
+import androidx.media3.session.MediaSession
 import androidx.media3.ui.PlayerView
 import com.example.rtsp_client.ui.theme.Rtsp_clientTheme
 
 class MainActivity : ComponentActivity() {
     private lateinit var player: ExoPlayer
+    private val isInPipMode = mutableStateOf(false)
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        player = ExoPlayer.Builder(this).build() // ExoPlayer instance
-
         super.onCreate(savedInstanceState)
+        player = ExoPlayer.Builder(this).build()
         enableEdgeToEdge()
+
+        val session = MediaSession.Builder(this, player).build()
+        session.player = player
+
         setContent {
+            val context = LocalContext.current
+            val focusManager = LocalFocusManager.current
             var urlstate by rememberSaveable { mutableStateOf("") }
             var recordingState by rememberSaveable { mutableStateOf(false) }
 
             Rtsp_clientTheme {
-                val context = LocalContext.current
-                val focusManager =
-                    LocalFocusManager.current  // to manage the focus of the textField
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
                     Column(
                         modifier = Modifier
                             .fillMaxSize()
-                            .clickable {
-                               focusManager.clearFocus()
-                            }
-                            .padding(innerPadding)) {
-                        searchBar(
-                            modifier = Modifier, url = urlstate, onValueChange = { urlstate = it },
-                            onSearch = {
-                                focusManager.clearFocus()
-                                val streamUrl = urlstate
+                            .clickable { focusManager.clearFocus() }
+                            .padding(innerPadding)
+                    ) {
+                        if (!isInPipMode.value) {
+                            searchBar(
+                                modifier = Modifier,
+                                url = urlstate,
+                                onValueChange = { urlstate = it },
+                                onSearch = {
+                                    focusManager.clearFocus()
+                                    val streamUrl = urlstate
 
-                                val mediaItem = MediaItem.Builder().setUri(streamUrl)
-                                    .setMimeType(MimeTypes.APPLICATION_RTSP) // Important for RTSP
-                                    .build()
+                                    val mediaItem = MediaItem.Builder().setUri(streamUrl)
+                                        .setMimeType(MimeTypes.APPLICATION_RTSP) // Important for RTSP
+                                        .build()
 
-                                player.setMediaItem(mediaItem)
-                                player.prepare()
-                                player.play()
-                            }, context = context
-                        )
+                                    player.setMediaItem(mediaItem)
+                                    player.prepare()
+                                    player.play()
 
-                        Spacer(Modifier.height(30.dp))
+                                },
+                                context = context
+                            )
+                            Spacer(Modifier.height(30.dp))
+                        }
+
                         videoView(
                             modifier = Modifier,
                             url = urlstate,
-                            player = player
+                            player = player,
+                            context = context
                         )
 
-                        Spacer(Modifier.height(30.dp))
-                        Buttons(
-                            modifier = Modifier.padding(
-                                horizontal = 10.dp
-                            ),
-                            isRecording = recordingState,
-                            onclickRecord = { recordingState = it }
-                        )
-
+                        if (!isInPipMode.value) {
+                            Spacer(Modifier.height(30.dp))
+                            Buttons(
+                                modifier = Modifier.padding(horizontal = 10.dp),
+                                isRecording = recordingState,
+                                onclickRecord = { recordingState = it },
+                                onPIPclicked = { enterPipMode() }
+                            )
+                        }
                     }
                 }
-
             }
         }
+    }
+
+
+    override fun onPictureInPictureModeChanged(isInPictureInPictureMode: Boolean) {
+        super.onPictureInPictureModeChanged(isInPictureInPictureMode)
+        isInPipMode.value = isInPictureInPictureMode
+    }
+
+    override fun onPause() {
+        super.onPause()
+        if (isInPipMode.value == false ) player.pause()
     }
 
     override fun onDestroy() {
         super.onDestroy()
         player.release()
+    }
+
+    private fun enterPipMode() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val aspectRatio = Rational(16, 9)
+            val pipParams = PictureInPictureParams.Builder()
+                .setAspectRatio(aspectRatio)
+                .build()
+            enterPictureInPictureMode(pipParams)
+        }
     }
 }
 
@@ -178,6 +200,7 @@ fun Buttons(
     modifier: Modifier,
     isRecording: Boolean,
     onclickRecord: (Boolean) -> Unit,
+    onPIPclicked: () -> Unit,
 ) {
     Row(
         modifier = modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween
@@ -198,7 +221,9 @@ fun Buttons(
             )
         }
         Button(
-            onClick = {},
+            onClick = {
+                onPIPclicked()
+            },
             modifier = Modifier
                 .padding(horizontal = 20.dp)
                 .size(150.dp, 50.dp),
@@ -211,22 +236,26 @@ fun Buttons(
     }
 }
 
+@OptIn(UnstableApi::class)
 @Composable
 fun videoView(
     modifier: Modifier,
     url: String,
     player: ExoPlayer,
+    context: Context,
 ) {
+
     AndroidView(
         factory = { context ->
             PlayerView(context).also {
                 it.player = player
+
             }
         },
-
         modifier = Modifier
             .fillMaxWidth()
             .aspectRatio(16 / 9f)
+
     )
 }
 

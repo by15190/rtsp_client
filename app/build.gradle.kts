@@ -57,10 +57,16 @@ dependencies {
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
 
-    // exoplayer
 
-    implementation("androidx.media3:media3-exoplayer:1.6.0")
-    implementation("androidx.media3:media3-exoplayer-dash:1.6.0")
-    implementation("androidx.media3:media3-ui:1.6.0")
-    implementation("androidx.media3:media3-exoplayer-rtsp:1.6.0")
+// Media3 ExoPlayer
+    val media3Version = "1.6.0"
+    implementation("androidx.media3:media3-exoplayer:$media3Version")
+
+// UI components for player (optional, if you're using default player view)
+    implementation("androidx.media3:media3-ui:$media3Version")
+
+// For Picture-in-Picture support
+    implementation("androidx.media3:media3-session:$media3Version")
+// for the rtsp support
+    implementation("androidx.media3:media3-exoplayer-rtsp:$media3Version")
 }
