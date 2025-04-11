@@ -25,24 +25,24 @@ This is a modern Android app built using **Jetpack Compose**, **Media3 (ExoPlaye
 ### 🔴 Streaming RTSP
 <img src="https://github.com/by15190/rtsp_client/blob/master/app/src/main/res/image2.png" alt="Home Screen" width="300"/>
 
-To start streaming enter the url in searchBox and hit the search icon on the right corner of the searchbox
+➡️ Enter your RTSP URL in the search bar and tap the search icon to start streaming.
 
 ### 💾 Start Recording 
 <img src="https://github.com/by15190/rtsp_client/blob/master/app/src/main/res/image2.png" alt="Home Screen" width="300"/>
-
-To Start Recording, first start Streaming then hit Record button   
+▶️ Hit the Record button after streaming starts.
 
 ### 💾 Stop Recording 
 <img src="https://github.com/by15190/rtsp_client/blob/master/app/src/main/res/image4.png" alt="Home Screen" width="300"/>
-To Stop the Recording hit the Stop/Record button , it also save the Recording in the file 
+🛑 Tap the Record button again to stop recording. The video is automatically saved.
 
 ### 💾 Recording Saved
 <img src="https://github.com/by15190/rtsp_client/blob/master/app/src/main/res/image6.png" alt="Home Screen" width="300"/>
+✅ Saved in your Movies directory.
 
 ### 📺 Picture-in-Picture
 <img src="https://github.com/by15190/rtsp_client/blob/master/app/src/main/res/image3.png" alt="Home Screen" width="300"/>
+📲 Tap the PiP button to continue watching while multitasking.
 
-To enter the Picture-in-Picture mode , click the PIP button 
 ---
 
 ## 🛠 Tech Stack
