@@ -26,7 +26,7 @@ This is a modern Android app built using **Jetpack Compose**, **Media3 (ExoPlaye
 <img src="https://github.com/by15190/rtsp_client/blob/master/app/src/main/res/image2.png" alt="Home Screen" width="300"/>
 
 ### 💾 Start Recording 
-<img src="https://github.com/by15190/rtsp_client/blob/master/app/src/main/res/image1.png" alt="Home Screen" width="300"/>
+<img src="https://github.com/by15190/rtsp_client/blob/master/app/src/main/res/image2.png" alt="Home Screen" width="300"/>
 
 ### 💾 Stop Recording 
 <img src="https://github.com/by15190/rtsp_client/blob/master/app/src/main/res/image4.png" alt="Home Screen" width="300"/>
