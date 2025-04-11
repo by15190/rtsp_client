@@ -2,8 +2,11 @@ package com.example.rtsp_client
 
 import android.app.PictureInPictureParams
 import android.content.Context
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.os.Environment
+import android.util.Log
 import android.util.Rational
 import android.widget.Toast
 import androidx.activity.ComponentActivity
@@ -110,7 +113,7 @@ class MainActivity : ComponentActivity() {
 
                                 },
                                 context = context
-                            ).run { url = urlstate }
+                            ).also { url = urlstate }
                             Spacer(Modifier.height(30.dp))
                         }
 
@@ -126,10 +129,18 @@ class MainActivity : ComponentActivity() {
                                 onclickRecord = {
                                     if (recordingState) {
                                         stoprecording()
+                                        recordingState = !recordingState
+                                        Log.d("tag1", "stop rec")
                                     } else {
-                                        startrecording(url)
+                                        if(url.isNotEmpty()){
+                                            startrecording(url)
+                                            recordingState = !recordingState
+                                            Log.d("tag1", "start rec")
+                                        }else
+                                            Toast.makeText(context, "Please Enter a URL", Toast.LENGTH_SHORT).show()
+
                                     }
-                                    recordingState = !recordingState
+
 
                                 },
                                 onPIPclicked = { enterPipMode() })
@@ -141,26 +152,31 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun stoprecording() {
-        mediaPlayer.release()
+        mediaPlayer.stop()
+        Toast.makeText(this, "stop and saved Recording", Toast.LENGTH_SHORT).show()
 
     }
 
     private fun startrecording(url: String) {
         // Ensure the directory exists
-        recordingPath =
-            "/storage/emulated/0/Movies/Rtsp/recording_${System.currentTimeMillis()}.mp4" //  path for the recording
+        val  dir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_MOVIES)
 
-        val file = File(recordingPath)
-        file.parentFile?.mkdirs() // Create the directory if it doesn't exist
+        val file = File(
+            dir  //  for the public directory
+            , "recording_${System.currentTimeMillis()}.mp4" // give the name of the file
+        )
+        recordingPath = file.absolutePath // Get the absolute path of the file
+
 
         // Set up recording with the RTSP URL
-        val media = Media(libVLC, url) // Use the RTSP URL for recording
+        val media = Media(libVLC, Uri.parse(url)) // Use the RTSP URL for recording
         // Play + Record
         media.addOption(":sout=#file{dst=$recordingPath}")
         media.addOption(":sout-keep")
 
         mediaPlayer.media = media
         mediaPlayer.play()
+        Toast.makeText(this, "Recording the stream", Toast.LENGTH_SHORT).show()
     }
 
 
