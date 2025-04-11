@@ -20,7 +20,7 @@ This is a modern Android app built using **Jetpack Compose**, **Media3 (ExoPlaye
 ## 📸 Screenshots
 
 ### 🏠 Home Screen
-![Home Screen](screenshots/home_screen.png)
+![Home Screen](https://github.com/by15190/rtsp_client/blob/master/app/src/main/res/image1.png)
 
 ### 🔴 Streaming RTSP
 ![RTSP Stream](screenshots/streaming.png)
