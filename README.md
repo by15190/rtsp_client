@@ -25,11 +25,16 @@ This is a modern Android app built using **Jetpack Compose**, **Media3 (ExoPlaye
 ### 🔴 Streaming RTSP
 <img src="https://github.com/by15190/rtsp_client/blob/master/app/src/main/res/image2.png" alt="Home Screen" width="300"/>
 
+To start streaming enter the url in searchBox and hit the search icon on the right corner of the searchbox
+
 ### 💾 Start Recording 
 <img src="https://github.com/by15190/rtsp_client/blob/master/app/src/main/res/image2.png" alt="Home Screen" width="300"/>
 
+To Start Recording, first start Streaming then hit Record button   
+
 ### 💾 Stop Recording 
 <img src="https://github.com/by15190/rtsp_client/blob/master/app/src/main/res/image4.png" alt="Home Screen" width="300"/>
+To Stop the Recording hit the Stop/Record button , it also save the Recording in the file 
 
 ### 💾 Recording Saved
 <img src="https://github.com/by15190/rtsp_client/blob/master/app/src/main/res/image6.png" alt="Home Screen" width="300"/>
@@ -37,6 +42,7 @@ This is a modern Android app built using **Jetpack Compose**, **Media3 (ExoPlaye
 ### 📺 Picture-in-Picture
 <img src="https://github.com/by15190/rtsp_client/blob/master/app/src/main/res/image3.png" alt="Home Screen" width="300"/>
 
+To enter the Picture-in-Picture mode , click the PIP button 
 ---
 
 ## 🛠 Tech Stack
